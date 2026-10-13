@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ cfg.wedding_name }} | {{ cfg.couple }}'s wedding</title>
+  <meta name="description" content="{{ cfg.couple }} are getting married. Send a gift and leave a note to help us celebrate.">
+  <meta name="theme-color" content="#1d0b28">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ cfg.wedding_name }}: {{ cfg.couple }}'s wedding">
+  <meta property="og:description" content="Help us celebrate our wedding with a gift and a note of love.">
+  <meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='img/og-share.jpg') }}">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Great+Vibes&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <a class="skip-link" href="#give">Skip to giving</a>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="{{ cfg.wedding_name }}, back to top">{{ cfg.wedding_name }}</a>
+    <nav aria-label="Main">
+      <a href="#wall">Notes of love</a>
+      <a class="btn btn--gold btn--small" href="#give">Give a gift</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="sparkles" id="sparkles" aria-hidden="true"></div>
+
+      <figure class="poster">
+        <img
+          src="{{ url_for('static', filename='img/poster.jpg') }}"
+          srcset="{{ url_for('static', filename='img/poster-small.jpg') }} 640w, {{ url_for('static', filename='img/poster.jpg') }} 1024w"
+          sizes="(max-width: 860px) 80vw, 460px"
+          width="1024" height="1536"
+          alt="{{ cfg.wedding_name }}: {{ cfg.couple }} smiling together inside a glowing heart, framed by roses and lantern light">
+      </figure>
+
+      <div class="hero__copy">
+        <h1>We're getting married, and we'd love you to be part of it.</h1>
+        <p class="lede">
+          Your gift, big or small, helps us celebrate our wedding day with the people we love.
+          Leave us a note when you give. We will keep every one.
+        </p>
+
+        <div class="progress" id="progress">
+          <p class="progress__figures">
+            <strong id="raised">&nbsp;</strong>
+            <span>raised of <span id="goal">&nbsp;</span></span>
+          </p>
+          <div class="progress__bar" id="bar-track" role="progressbar" aria-label="Amount raised toward our goal"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span id="bar"></span>
+          </div>
+          <p class="progress__meta" id="supporter-count">&nbsp;</p>
+        </div>
+
+        <div class="hero__actions">
+          <a class="btn btn--gold" href="#give">Give a gift</a>
+          <button class="btn btn--ghost" type="button" id="share-btn">Share this page</button>
+        </div>
+        <p class="countdown" id="countdown" hidden></p>
+      </div>
+    </section>
+
+    <section class="section give" id="give" aria-labelledby="give-title">
+      <div class="give__panel">
+        <div class="give__photo">
+          <img src="{{ url_for('static', filename='img/couple-heart.jpg') }}" loading="lazy"
+               alt="{{ cfg.couple }} together, heads touching, smiling at the camera">
+          <p class="script give__sign">{{ cfg.couple }}</p>
+        </div>
+
+        <form class="give__form" id="give-form" novalidate>
+          <h2 id="give-title">Give a gift</h2>
+          <p class="give__intro">Choose an amount or enter your own. It takes about a minute.</p>
+
+          {% if demo %}
+          <p class="demo-note" role="note">
+            Test mode is on. No real money will move. Add your Paystack key in the <code>.env</code> file to go live.
+          </p>
+          {% endif %}
+
+          <fieldset class="amounts">
+            <legend>Amount ({{ cfg.currency }})</legend>
+            <div class="amounts__grid">
+              {% for p in cfg.presets %}
+              <label class="chip">
+                <input type="radio" name="preset" value="{{ p }}" {% if loop.index == 2 %}checked{% endif %}>
+                <span data-amount-label>{{ '{:,}'.format(p) }}</span>
+              </label>
+              {% endfor %}
+              <label class="chip">
+                <input type="radio" name="preset" value="custom">
+                <span>Other</span>
+              </label>
+            </div>
+            <div class="field field--custom" id="custom-wrap" hidden>
+              <label for="custom-amount">Your amount in {{ cfg.currency }}</label>
+              <input id="custom-amount" name="custom" type="number" inputmode="numeric" min="{{ cfg.min_amount }}" step="1" placeholder="e.g. 15000">
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" name="name" type="text" autocomplete="name" maxlength="80" required>
+          </div>
+          <div class="field">
+            <label for="email">Email for your receipt</label>
+            <input id="email" name="email" type="email" autocomplete="email" maxlength="120" required>
+          </div>
+          <div class="field">
+            <label for="message">A note for the couple (optional)</label>
+            <textarea id="message" name="message" rows="3" maxlength="300" placeholder="Wishing you both a lifetime of joy"></textarea>
+          </div>
+          <label class="check">
+            <input type="checkbox" id="hide-name" name="hide_name">
+            <span>Show my note as "A kind friend" instead of my name</span>
+          </label>
+
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+
+          <button class="btn btn--gold btn--wide" type="submit" id="give-btn">Give</button>
+          <p class="give__trust">
+            Payments are handled by Paystack, so your card details never touch this site.
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <section class="section wall-section" id="wall" aria-labelledby="wall-title">
+      <div class="wrap">
+        <h2 id="wall-title">Notes of love</h2>
+        <p class="wall__intro">Words from the people cheering us on.</p>
+        <ol class="wall" id="wall-list"></ol>
+        <p class="wall__empty" id="wall-empty" hidden>No notes yet. Yours could be the first.</p>
+      </div>
+    </section>
+
+    {% if bank %}
+    <section class="section bank" aria-labelledby="bank-title">
+      <div class="wrap wrap--narrow">
+        <h2 id="bank-title">Prefer a bank transfer?</h2>
+        <dl class="bank__details">
+          <div><dt>Bank</dt><dd>{{ bank.bank }}</dd></div>
+          <div><dt>Account name</dt><dd>{{ bank.name }}</dd></div>
+          <div><dt>Account number</dt><dd>{{ bank.number }}</dd></div>
+        </dl>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+
+  <footer class="site-footer">
+    <p class="script">{{ cfg.couple }}</p>
+    <p>Thank you for loving us.</p>
+    <p><a id="whatsapp-share" href="#" rel="noopener" target="_blank">Share on WhatsApp</a></p>
+  </footer>
+
+  <dialog class="dialog" id="thanks" aria-labelledby="thanks-title">
+    <form method="dialog">
+      <h2 id="thanks-title"></h2>
+      <p id="thanks-body"></p>
+      <button class="btn btn--gold">Close</button>
+    </form>
+  </dialog>
+
+  <script type="application/json" id="site-config">{{ cfg|tojson }}</script>
+  <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</body>
+</html>

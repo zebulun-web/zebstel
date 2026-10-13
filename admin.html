@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Gifts | {{ cfg.wedding_name }} admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin">
+  <main class="wrap admin__wrap">
+    <h1>Gifts received</h1>
+    <p class="admin__summary">
+      <strong>{{ '{:,.2f}'.format(stats.raised) }} {{ currency }}</strong>
+      from {{ stats.count }} confirmed gift{{ '' if stats.count == 1 else 's' }}.
+      Goal: {{ '{:,}'.format(stats.goal) }} {{ currency }}.
+      <a href="{{ url_for('admin_export') }}">Download CSV</a>
+    </p>
+
+    <div class="admin__table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Name</th><th>Email</th><th>Amount</th><th>Status</th><th>Note</th></tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>{{ (r.paid_at or r.created_at)[:16].replace('T', ' ') }}</td>
+            <td>{{ r.name }}{% if r.hide_name %} <small>(hidden on wall)</small>{% endif %}</td>
+            <td>{{ r.email }}</td>
+            <td>{{ '{:,.2f}'.format(r.amount_minor / 100) }} {{ r.currency }}</td>
+            <td><span class="status status--{{ r.status }}">{{ r.status }}</span></td>
+            <td>{{ r.message }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6">No gifts yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p><small>"Pending" means the guest started but didn't finish paying. Only "paid" gifts count toward the total.</small></p>
+  </main>
+</body>
+</html>
